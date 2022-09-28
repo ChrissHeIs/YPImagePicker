@@ -9,7 +9,7 @@ import Photos
 import UIKit
 
 internal struct YPPermissionManager {
-    typealias YPPermissionManagerCompletion = (_ hasPermission: Bool) -> Void
+    typealias YPPermissionManagerCompletion = (_ hasPermission: Bool, _ isLimited: Bool) -> Void
 
     static func checkLibraryPermissionAndAskIfNeeded(sourceVC: UIViewController,
                                                      completion: @escaping YPPermissionManagerCompletion) {
@@ -23,12 +23,12 @@ internal struct YPPermissionManager {
 
         switch status {
         case .authorized:
-            completion(true)
+            completion(true, false)
         case .limited:
-            completion(true)
+            completion(true, true)
         case .restricted, .denied:
             let alert = YPPermissionDeniedPopup.buildGoToSettingsAlert(cancelBlock: {
-                completion(false)
+                completion(false, false)
             })
             sourceVC.present(alert, animated: true, completion: nil)
         case .notDetermined:
@@ -36,13 +36,13 @@ internal struct YPPermissionManager {
             if #available(iOS 14, *) {
                 PHPhotoLibrary.requestAuthorization(for: .readWrite) { s in
                     DispatchQueue.main.async {
-                        completion(s == .authorized || s == .limited)
+                        completion(s == .authorized || s == .limited, s == .limited)
                     }
                 }
             } else {
                 PHPhotoLibrary.requestAuthorization { s in
                     DispatchQueue.main.async {
-                        completion(s == .authorized)
+                        completion(s == .authorized, false)
                     }
                 }
             }
@@ -58,20 +58,29 @@ internal struct YPPermissionManager {
 
         switch status {
         case .authorized:
-            completion(true)
+            completion(true, false)
         case .restricted, .denied:
             let alert = YPPermissionDeniedPopup.buildGoToSettingsAlert(cancelBlock: {
-                completion(false)
+                completion(false, false)
             })
             sourceVC.present(alert, animated: true, completion: nil)
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: type) { granted in
                 DispatchQueue.main.async {
-                    completion(granted)
+                    completion(granted, false)
                 }
             }
         @unknown default:
             ypLog("Bug. Write to developers please.")
         }
+    }
+    
+    static func presentLimitedLibraryPicker(sourceVC: UIViewController) {
+        let alert = YPPermissionDeniedPopup.buildManageLimitedAccessAlert {
+            if #available(iOS 14, *) {
+                PHPhotoLibrary.shared().presentLimitedLibraryPicker(from: sourceVC)
+            }
+        }
+        sourceVC.present(alert, animated: true, completion: nil)
     }
 }

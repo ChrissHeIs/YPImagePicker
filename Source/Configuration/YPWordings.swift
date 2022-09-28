@@ -12,12 +12,21 @@ public struct YPWordings {
     
     public var permissionPopup = PermissionPopup()
     public var videoDurationPopup = VideoDurationPopup()
+    public var manageLimitedAccessPopup = ManageLimitedAccessPopup()
 
     public struct PermissionPopup {
         public var title = ypLocalized("YPImagePickerPermissionDeniedPopupTitle")
         public var message = ypLocalized("YPImagePickerPermissionDeniedPopupMessage")
         public var cancel = ypLocalized("YPImagePickerPermissionDeniedPopupCancel")
         public var grantPermission = ypLocalized("YPImagePickerPermissionDeniedPopupGrantPermission")
+    }
+    
+    public struct ManageLimitedAccessPopup {
+        public var title = ""
+        public var message = "Select more photos or go to Settings to allow access to all photos."
+        public var cancel = ypLocalized("YPImagePickerPermissionDeniedPopupCancel")
+        public var selectMore = "Select more photos"
+        public var goToSettings = "Allow access to all photos"
     }
     
     public struct VideoDurationPopup {

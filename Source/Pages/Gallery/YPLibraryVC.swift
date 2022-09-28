@@ -20,6 +20,7 @@ internal final class YPLibraryVC: UIViewController, YPPermissionCheckable {
     internal var currentlySelectedIndex: Int = 0
     internal let panGestureHelper = PanGestureHelper()
     internal var isInitialized = false
+    internal var isLimited = false
 
     // MARK: - Init
 
@@ -152,7 +153,7 @@ internal final class YPLibraryVC: UIViewController, YPPermissionCheckable {
     
     @objc
     func squareCropButtonTapped() {
-        doAfterLibraryPermissionCheck { [weak self] in
+        doAfterLibraryPermissionCheck { [weak self] _ in
             self?.v.assetViewContainer.squareCropButtonTapped()
         }
     }
@@ -170,7 +171,7 @@ internal final class YPLibraryVC: UIViewController, YPPermissionCheckable {
             return
         }
 
-        doAfterLibraryPermissionCheck { [weak self] in
+        doAfterLibraryPermissionCheck { [weak self] _ in
             if self?.isMultipleSelectionEnabled == false {
                 self?.selectedItems.removeAll()
             }
@@ -384,6 +385,21 @@ internal final class YPLibraryVC: UIViewController, YPPermissionCheckable {
     }
     
     // MARK: - Fetching Media
+    
+    func manageButtonTapped() {
+        
+        presentLimitedLibraryPicker()
+    }
+    
+    private func gotoAppPrivacySettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString),
+            UIApplication.shared.canOpenURL(url) else {
+                
+                return
+        }
+
+        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    }
     
     private func fetchImageAndCrop(for asset: PHAsset,
                                    withCropRect: CGRect? = nil,

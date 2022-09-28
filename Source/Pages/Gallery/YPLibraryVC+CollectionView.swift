@@ -11,10 +11,12 @@ import UIKit
 extension YPLibraryVC {
     var isLimitExceeded: Bool { return selectedItems.count >= YPConfig.library.maxNumberOfItems }
     
-    func setupCollectionView() {
+    func setupCollectionView(isAccessLimited: Bool = true) {
         v.collectionView.dataSource = self
         v.collectionView.delegate = self
         v.collectionView.register(YPLibraryViewCell.self, forCellWithReuseIdentifier: "YPLibraryViewCell")
+        
+        v.collectionView.register(YPLibraryVCManageLimitHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "YPLibraryVCManageLimitHeader")
         
         // Long press on cell to enable multiple selection
         let longPressGR = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(longPressGR:)))
@@ -108,6 +110,17 @@ extension YPLibraryVC {
 extension YPLibraryVC: UICollectionViewDataSource {
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return mediaManager.fetchResult?.count ?? 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+
+        let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "YPLibraryVCManageLimitHeader", for: indexPath) as! YPLibraryVCManageLimitHeader
+        
+        headerView.action = { [weak self] in
+            self?.manageButtonTapped()
+        }
+
+        return headerView
     }
 }
 
@@ -213,6 +226,16 @@ extension YPLibraryVC: UICollectionViewDelegate {
 }
 
 extension YPLibraryVC: UICollectionViewDelegateFlowLayout {
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        
+        if #available(iOS 14, *) {
+            return isLimited ? CGSize(width: collectionView.frame.width, height: 40) : .zero
+        } else {
+            return .zero
+        }
+    }
+    
     public func collectionView(_ collectionView: UICollectionView,
                                layout collectionViewLayout: UICollectionViewLayout,
                                sizeForItemAt indexPath: IndexPath) -> CGSize {
